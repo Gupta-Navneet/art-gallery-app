@@ -1,0 +1,19 @@
+# Environment & Virtualenvs
+venv/
+.venv/
+env/
+ENV/
+.env
+
+# Python Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Operating System
+.DS_Store
+Thumbs.db
+
+# Database (optional - keep SQLite database local)
+art_gallery.db
