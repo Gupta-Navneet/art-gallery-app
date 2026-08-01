@@ -201,114 +201,11 @@ def ensure_tables():
             );
         """)
     db.commit()
-    seed_full_database()
+
+ensure_tables()
 
 def hash_pw(password):
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-
-def seed_full_database():
-    """Populate database with complete real dataset if empty."""
-    # Seed Artists
-    existing_artists = db.fetchall("SELECT id FROM artists")
-    if not existing_artists:
-        artists_data = [
-            (1, 'Leonardo da Vinci', 'Italian polymath of the Renaissance period.'),
-            (2, 'Salvador Dalí', 'Spanish surrealist artist.'),
-            (3, 'Edvard Munch', 'Norwegian painter and printmaker.'),
-            (4, 'Pablo Picasso', 'Spanish painter, sculptor, and co-founder of Cubism.'),
-            (5, 'Vincent van Gogh', 'Dutch post-impressionist painter, best known for works like "Starry Night" and "Sunflowers."'),
-            (6, 'Claude Monet', 'French painter, one of the founders of French Impressionism, best known for "Water Lilies."'),
-            (7, 'Frida Kahlo', 'Mexican painter, known for her deeply personal self-portraits and surrealist work.'),
-            (8, 'Navneet Gupta', 'Indian Painter'),
-            (9, 'goerge o kefee ', 'American modernist artist, famous for her paintings of enlarged flowers and New Mexico landscapes.'),
-            (10, 'Grant Wood', 'American Painter'),
-            (11, 'The girl with the pearl earing', 'Merican Painter')
-        ]
-        for a_id, name, bio in artists_data:
-            try:
-                db.execute("INSERT INTO artists (id, name, bio) VALUES (%s, %s, %s)", (a_id, name, bio))
-            except Exception:
-                pass
-        db.commit()
-
-    # Seed Artworks
-    existing_artworks = db.fetchall("SELECT id FROM artworks")
-    if not existing_artworks:
-        artworks_data = [
-            (19, 'The Persistence of Memory', 3, 'https://upload.wikimedia.org/wikipedia/en/d/dd/The_Persistence_of_Memory.jpg', 1300000.00, 'Iconic melting clocks painting by Salvador Dalí.', 1931, 'Oil on canvas'),
-            (20, 'The Scream', 4, 'https://upload.wikimedia.org/wikipedia/commons/f/f4/The_Scream.jpg', 1100000.00, 'Expressionist masterpiece by Edvard Munch.', 1893, 'Oil, tempera, pastel'),
-            (21, 'Guernica', 5, 'https://upload.wikimedia.org/wikipedia/en/7/74/PicassoGuernica.jpg', 1500000.00, 'Powerful anti-war mural by Pablo Picasso.', 1937, 'Oil on canvas'),
-            (28, 'Starry Night', 1, 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/960px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg', 1500000.00, 'Famous painting by Vincent van Gogh.', 1889, 'Oil on canvas'),
-            (29, 'Water Lilies', 2, 'https://www.artandobject.com/sites/default/files/styles/gallery_item/public/19331157-water-lilies0.jpg?h=7626f234&itok=WIZLL7rz', 1200000.00, 'Iconic series of paintings by Claude Monet.', 1916, 'Oil on canvas'),
-            (30, 'The Two Fridas', 3, 'https://upload.wikimedia.org/wikipedia/en/f/f9/The_Two_Fridas.jpg', 2000000.00, 'Surrealist self-portrait by Frida Kahlo.', 1939, 'Oil on canvas'),
-            (32, 'Mona Lisa', 1, 'https://upload.wikimedia.org/wikipedia/commons/6/6a/Mona_Lisa.jpg', 1000000.00, 'A portrait painting by Leonardo da Vinci.', 1503, 'Oil on canvas'),
-            (37, 'Under the stars', 8, 'uploaded_images/20231018_204900.jpg', 5000000.00, 'A child stands under palm trees, gazing at the star-filled night sky.', 2020, 'Oil on canvas'),
-            (39, 'Grant Wood', 10, 'uploaded_images/Grant_Wood_-_American_Gothic_-_Google_Art_Project.jpg', 3000000.00, 'The figures are seen as embodying positive aspects of rural American ideals, such as strength and stability', 1930, 'Oil of beaverboard')
-        ]
-        for aw_id, title, artist_id, img_url, price, desc, yr, med in artworks_data:
-            try:
-                db.execute(
-                    "INSERT INTO artworks (id, title, artist_id, image_url, price, description, year, medium) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                    (aw_id, title, artist_id, img_url, price, desc, yr, med)
-                )
-            except Exception:
-                pass
-        db.commit()
-
-    # Seed Users
-    existing_users = db.fetchall("SELECT username FROM userss")
-    if not existing_users:
-        users_data = [
-            ('Navneet Gupta', 'admin123', 'admin'),
-            ('Navneet', 'navneet123', 'user'),
-            ('admin', 'admin123', 'admin'),
-            ('Nonu', 'nonu123', 'user'),
-            ('Aditya', 'aditya123', 'user')
-        ]
-        for u, p, r in users_data:
-            try:
-                db.execute("INSERT INTO userss (username, password, role) VALUES (%s, %s, %s)", (u, hash_pw(p), r))
-            except Exception:
-                pass
-        db.commit()
-
-    # Seed Orders
-    existing_orders = db.fetchall("SELECT id FROM orders")
-    if not existing_orders:
-        orders_data = [
-            (1, 'Navneet', 19, 'The Persistence of Memory', 1300000.0, '2025-11-14 02:10:37'),
-            (2, 'Aditya', 28, 'Starry Night', 1500000.0, '2025-11-14 02:47:14'),
-            (3, 'Aditya', 37, 'Under the stars', 5000000.0, '2025-11-14 03:08:46'),
-            (4, 'Aditya', 21, 'Guernica', 1500000.0, '2025-11-14 03:12:47'),
-            (5, 'Navneet', 19, 'The Persistence of Memory', 1300000.0, '2025-11-14 10:50:18'),
-            (6, 'Navneet', 39, 'Grant Wood', 3000000.0, '2025-11-14 11:02:28')
-        ]
-        for o_id, usr, aw_id, title, price, o_date in orders_data:
-            try:
-                db.execute("INSERT INTO orders (id, user, artwork_id, title, price, order_date) VALUES (%s, %s, %s, %s, %s, %s)",
-                           (o_id, usr, aw_id, title, price, o_date))
-            except Exception:
-                pass
-        db.commit()
-
-    # Seed Reviews
-    existing_reviews = db.fetchall("SELECT id FROM reviews")
-    if not existing_reviews:
-        reviews_data = [
-            (1, 19, 'Navneet', 4, 'Stunning artwork!', '2025-11-14 02:17:42'),
-            (2, 20, 'Aditya', 3, 'Great colors.', '2025-11-14 03:14:03'),
-            (3, 21, 'Navneet', 5, 'Absolute masterpiece.', '2025-11-14 10:50:07'),
-            (4, 29, 'Navneet', 5, 'Beautiful impressionist art.', '2025-11-14 11:02:07')
-        ]
-        for r_id, aw_id, usr, rating, comment, r_date in reviews_data:
-            try:
-                db.execute("INSERT INTO reviews (id, artwork_id, user, rating, comment, review_date) VALUES (%s, %s, %s, %s, %s, %s)",
-                           (r_id, aw_id, usr, rating, comment, r_date))
-            except Exception:
-                pass
-        db.commit()
-
-ensure_tables()
 
 # -----------------------------
 # Helper Functions
@@ -385,16 +282,48 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-st.title("🎨 Online Art Gallery")
-
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.username = ""
     st.session_state.role = ""
 
+if "current_page" not in st.session_state:
+    st.session_state.current_page = "Explore"
+
 # -----------------------------
-# Navigation Menu
+# Top Header Bar & Navigation
 # -----------------------------
+header_col1, header_col2 = st.columns([2, 1])
+
+with header_col1:
+    st.title("🎨 Online Art Gallery")
+
+with header_col2:
+    st.write("") # Spacer
+    if not st.session_state.logged_in:
+        btn_col1, btn_col2, btn_col3 = st.columns([1, 1, 1])
+        with btn_col1:
+            if st.button("🖼️ Gallery", use_container_width=True):
+                st.session_state.current_page = "Explore"
+                st.rerun()
+        with btn_col2:
+            if st.button("🔐 Login", use_container_width=True):
+                st.session_state.current_page = "Login"
+                st.rerun()
+        with btn_col3:
+            if st.button("👤 Sign Up", use_container_width=True):
+                st.session_state.current_page = "Sign Up"
+                st.rerun()
+    else:
+        st.markdown(f"**👤 {st.session_state.username}** (`{st.session_state.role.upper()}`)")
+        if st.button("🚪 Logout", key="top_logout"):
+            st.session_state.logged_in = False
+            st.session_state.username = ""
+            st.session_state.role = ""
+            st.session_state.current_page = "Explore"
+            st.rerun()
+
+# Sidebar Navigation Sync
 def get_menu_options():
     if not st.session_state.logged_in:
         return ["Explore", "Login", "Sign Up"]
@@ -416,14 +345,21 @@ def get_menu_options():
     ]
 
 menu = get_menu_options()
-choice = st.sidebar.selectbox("Navigation Menu", menu)
+if st.session_state.current_page not in menu:
+    st.session_state.current_page = menu[0]
+
+choice = st.sidebar.radio("Navigation Menu", menu, index=menu.index(st.session_state.current_page))
+if choice != st.session_state.current_page:
+    st.session_state.current_page = choice
 
 if st.session_state.logged_in:
+    st.sidebar.markdown("---")
     st.sidebar.markdown(f"**Logged in as:** `{st.session_state.username}` ({st.session_state.role.upper()})")
     if st.sidebar.button("Logout", key="sidebar_logout"):
         st.session_state.logged_in = False
         st.session_state.username = ""
         st.session_state.role = ""
+        st.session_state.current_page = "Explore"
         st.rerun()
 
 # -----------------------------
@@ -458,7 +394,6 @@ def render_artworks_grid(search_query="", show_reviews=True, tab_id="main"):
             st.markdown(f"### {title}")
             if image_url:
                 try:
-                    # Clean aspect-ratio preserving display
                     st.image(image_url)
                 except Exception:
                     st.text("🖼️ [Artwork Preview]")
@@ -474,7 +409,10 @@ def render_artworks_grid(search_query="", show_reviews=True, tab_id="main"):
             if show_buy:
                 if st.button(f"🛒 Buy Now - {title}", key=buy_key):
                     if not st.session_state.logged_in:
-                        st.warning("🔐 Please login as a user to purchase artworks!")
+                        st.warning("🔐 Please login to purchase artworks!")
+                        if st.button("Go to Login Page", key=f"login_redirect_{item_prefix}"):
+                            st.session_state.current_page = "Login"
+                            st.rerun()
                     elif st.session_state.role == "admin":
                         st.error("❌ Admins cannot purchase artworks.")
                     else:
@@ -549,7 +487,7 @@ def render_artworks_grid(search_query="", show_reviews=True, tab_id="main"):
 # -----------------------------
 # Views: Public Explore
 # -----------------------------
-if choice == "Explore":
+if st.session_state.current_page == "Explore":
     st.header("🖼️ Public Art Gallery")
     q = st.text_input("🔍 Search Artwork by Title", key="explore_search")
     render_artworks_grid(search_query=q, show_reviews=True, tab_id="explore")
@@ -557,7 +495,7 @@ if choice == "Explore":
 # -----------------------------
 # Views: Sign Up
 # -----------------------------
-elif choice == "Sign Up":
+elif st.session_state.current_page == "Sign Up":
     st.header("👤 Create Account")
     new_u = st.text_input("Username", key="su_username")
     new_p = st.text_input("Password", type="password", key="su_password")
@@ -567,6 +505,9 @@ elif choice == "Sign Up":
             try:
                 add_user(new_u, new_p, new_r)
                 st.success(f"✅ {new_r.capitalize()} account created! Please log in.")
+                time.sleep(1)
+                st.session_state.current_page = "Login"
+                st.rerun()
             except Exception as e:
                 st.error("❗ Username already exists or invalid registration.")
         else:
@@ -575,7 +516,7 @@ elif choice == "Sign Up":
 # -----------------------------
 # Views: Login
 # -----------------------------
-elif choice == "Login":
+elif st.session_state.current_page == "Login":
     st.header("🔐 Login")
     li_u = st.text_input("Username", key="li_u")
     li_p = st.text_input("Password", type="password", key="li_p")
@@ -585,6 +526,7 @@ elif choice == "Login":
             st.session_state.logged_in = True
             st.session_state.username = li_u
             st.session_state.role = li_r
+            st.session_state.current_page = "View Artworks" if li_r == "user" else "View Artists"
             st.success(f"✅ Welcome back, {li_u}!")
             st.rerun()
         else:
