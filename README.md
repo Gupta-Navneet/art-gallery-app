@@ -4,6 +4,18 @@ A full-featured **DBMS Art Gallery Management & E-Commerce Web Application** bui
 
 ---
 
+## ✨ Application Features
+
+- **Public Gallery & Search**: Search and view artwork collection without logging in.
+- **User Authentication**: Secure signup and login powered by `bcrypt` password hashing.
+- **Role-Based Control**:
+  - **User**: Buy artworks, leave 1-5 star ratings & reviews, view purchase history, download PDF or TXT invoices.
+  - **Admin**: Add new artists, add/delete artworks, view platform sales analytics.
+- **Dual Database Architecture**: Automatically connects to a **MySQL** server if configured via environment variables, or falls back seamlessly to **SQLite** (`art_gallery.db`) for 24/7 cloud deployment.
+- **PDF Invoice Generation**: Instant downloadable PDF invoices built with `ReportLab`.
+
+---
+
 ## 🌐 Live Application
 - **Live 24/7 Deployment**: [https://art-gallery-app-qwh4jcs7vrrdqrzwmyvpjy.streamlit.app/](https://art-gallery-app-qwh4jcs7vrrdqrzwmyvpjy.streamlit.app/)
 - **GitHub Repository**: [https://github.com/Gupta-Navneet/art-gallery-app](https://github.com/Gupta-Navneet/art-gallery-app)
@@ -228,18 +240,6 @@ Below are the exact SQL queries executed by the application backend for each CRU
   DELETE FROM artworks 
   WHERE LOWER(title) = LOWER('Grant Wood');
   ```
-
----
-
-## ✨ Application Features
-
-- **Public Gallery & Search**: Search and view artwork collection without logging in.
-- **User Authentication**: Secure signup and login powered by `bcrypt` password hashing.
-- **Role-Based Control**:
-  - **User**: Buy artworks, leave 1-5 star ratings & reviews, view purchase history, download PDF or TXT invoices.
-  - **Admin**: Add new artists, add/delete artworks, view platform sales analytics.
-- **Dual Database Architecture**: Automatically connects to a **MySQL** server if configured via environment variables, or falls back seamlessly to **SQLite** (`art_gallery.db`) for 24/7 cloud deployment.
-- **PDF Invoice Generation**: Instant downloadable PDF invoices built with `ReportLab`.
 
 ---
 
