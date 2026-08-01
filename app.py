@@ -9,14 +9,12 @@ import streamlit as st
 from datetime import datetime
 from dotenv import load_dotenv
 
-# Try importing mysql.connector
 try:
     import mysql.connector
     MYSQL_AVAILABLE = True
 except ImportError:
     MYSQL_AVAILABLE = False
 
-# Optional PDF library (reportlab)
 try:
     from reportlab.lib.pagesizes import A4
     from reportlab.pdfgen import canvas
@@ -36,14 +34,12 @@ DB_NAME = os.getenv("DB_NAME", "art_gallery")
 DB_PORT = int(os.getenv("DB_PORT", "3306"))
 
 class DatabaseManager:
-    """Unified Database Manager supporting MySQL with SQLite fallback."""
     def __init__(self):
         self.db_type = None  # 'mysql' or 'sqlite'
         self.conn = None
         self.init_connection()
 
     def init_connection(self):
-        # Attempt MySQL connection if driver is installed
         if MYSQL_AVAILABLE:
             try:
                 self.conn = mysql.connector.connect(
@@ -57,9 +53,8 @@ class DatabaseManager:
                 self.db_type = 'mysql'
                 return
             except Exception:
-                pass  # Fallback to SQLite if MySQL is unreachable
+                pass
 
-        # Fallback to SQLite
         sqlite_db_path = os.path.join(os.path.dirname(__file__), "art_gallery.db")
         self.conn = sqlite3.connect(sqlite_db_path, check_same_thread=False)
         self.db_type = 'sqlite'
@@ -79,7 +74,6 @@ class DatabaseManager:
     def execute(self, query, params=()):
         cursor = self.get_cursor()
         if self.db_type == 'sqlite':
-            # Adapt MySQL %s placeholder to SQLite ? placeholder
             adapted_query = query.replace("%s", "?")
             cursor.execute(adapted_query, params)
         else:
@@ -94,7 +88,6 @@ class DatabaseManager:
         cursor = self.execute(query, params)
         rows = cursor.fetchall()
         if self.db_type == 'mysql':
-            # Convert dictionary rows to tuple format for consistent app code
             return [tuple(row.values()) for row in rows]
         return rows
 
@@ -108,7 +101,7 @@ class DatabaseManager:
 db = DatabaseManager()
 
 # -----------------------------
-# Table Setup & Seeding
+# Table Setup & Full Data Seeding
 # -----------------------------
 def ensure_tables():
     if db.db_type == 'mysql':
@@ -160,7 +153,6 @@ def ensure_tables():
             );
         """)
     else:
-        # SQLite Schemas
         db.execute("""
             CREATE TABLE IF NOT EXISTS userss (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -209,41 +201,111 @@ def ensure_tables():
             );
         """)
     db.commit()
-    seed_initial_data()
+    seed_full_database()
 
-def seed_initial_data():
-    """Seed initial sample artists and artworks if empty."""
-    artists = db.fetchall("SELECT * FROM artists")
-    if not artists:
-        db.execute("INSERT INTO artists (id, name, bio) VALUES (%s, %s, %s)",
-                   (1, "Johannes Vermeer", "Dutch Baroque Period painter specializing in domestic interior scenes."))
-        db.execute("INSERT INTO artists (id, name, bio) VALUES (%s, %s, %s)",
-                   (2, "Grant Wood", "American painter best known for his depictions of the rural American Midwest."))
-        db.execute("INSERT INTO artists (id, name, bio) VALUES (%s, %s, %s)",
-                   (3, "Vincent van Gogh", "Dutch Post-Impressionist painter who posthumously became one of the most famous figures in Western art history."))
+def hash_pw(password):
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+def seed_full_database():
+    """Populate database with complete real dataset if empty."""
+    # Seed Artists
+    existing_artists = db.fetchall("SELECT id FROM artists")
+    if not existing_artists:
+        artists_data = [
+            (1, 'Leonardo da Vinci', 'Italian polymath of the Renaissance period.'),
+            (2, 'Salvador Dalí', 'Spanish surrealist artist.'),
+            (3, 'Edvard Munch', 'Norwegian painter and printmaker.'),
+            (4, 'Pablo Picasso', 'Spanish painter, sculptor, and co-founder of Cubism.'),
+            (5, 'Vincent van Gogh', 'Dutch post-impressionist painter, best known for works like "Starry Night" and "Sunflowers."'),
+            (6, 'Claude Monet', 'French painter, one of the founders of French Impressionism, best known for "Water Lilies."'),
+            (7, 'Frida Kahlo', 'Mexican painter, known for her deeply personal self-portraits and surrealist work.'),
+            (8, 'Navneet Gupta', 'Indian Painter'),
+            (9, 'goerge o kefee ', 'American modernist artist, famous for her paintings of enlarged flowers and New Mexico landscapes.'),
+            (10, 'Grant Wood', 'American Painter'),
+            (11, 'The girl with the pearl earing', 'Merican Painter')
+        ]
+        for a_id, name, bio in artists_data:
+            try:
+                db.execute("INSERT INTO artists (id, name, bio) VALUES (%s, %s, %s)", (a_id, name, bio))
+            except Exception:
+                pass
         db.commit()
 
-    artworks = db.fetchall("SELECT * FROM artworks")
-    if not artworks:
-        db.execute(
-            "INSERT INTO artworks (title, artist_id, image_url, price, description, year, medium) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-            ("Girl with a Pearl Earring", 1, "https://upload.wikimedia.org/wikipedia/commons/0/0f/1665_Girl_with_a_Pearl_Earring.jpg", 1500000.00, "Iconic masterpiece by Johannes Vermeer.", 1665, "Oil on canvas")
-        )
-        db.execute(
-            "INSERT INTO artworks (title, artist_id, image_url, price, description, year, medium) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-            ("American Gothic", 2, "https://upload.wikimedia.org/wikipedia/commons/c/cc/Grant_Wood_-_American_Gothic_-_Google_Art_Project.jpg", 1200000.00, "Famous painting depicting a farmer standing beside his daughter.", 1930, "Oil on beaverboard")
-        )
-        db.execute(
-            "INSERT INTO artworks (title, artist_id, image_url, price, description, year, medium) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-            ("The Starry Night", 3, "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/1280px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg", 2500000.00, "Depicts the view from the east-facing window of Van Gogh's asylum room.", 1889, "Oil on canvas")
-        )
+    # Seed Artworks
+    existing_artworks = db.fetchall("SELECT id FROM artworks")
+    if not existing_artworks:
+        artworks_data = [
+            (19, 'The Persistence of Memory', 3, 'https://upload.wikimedia.org/wikipedia/en/d/dd/The_Persistence_of_Memory.jpg', 1300000.00, 'Iconic melting clocks painting by Salvador Dalí.', 1931, 'Oil on canvas'),
+            (20, 'The Scream', 4, 'https://upload.wikimedia.org/wikipedia/commons/f/f4/The_Scream.jpg', 1100000.00, 'Expressionist masterpiece by Edvard Munch.', 1893, 'Oil, tempera, pastel'),
+            (21, 'Guernica', 5, 'https://upload.wikimedia.org/wikipedia/en/7/74/PicassoGuernica.jpg', 1500000.00, 'Powerful anti-war mural by Pablo Picasso.', 1937, 'Oil on canvas'),
+            (28, 'Starry Night', 1, 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/960px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg', 1500000.00, 'Famous painting by Vincent van Gogh.', 1889, 'Oil on canvas'),
+            (29, 'Water Lilies', 2, 'https://www.artandobject.com/sites/default/files/styles/gallery_item/public/19331157-water-lilies0.jpg?h=7626f234&itok=WIZLL7rz', 1200000.00, 'Iconic series of paintings by Claude Monet.', 1916, 'Oil on canvas'),
+            (30, 'The Two Fridas', 3, 'https://upload.wikimedia.org/wikipedia/en/f/f9/The_Two_Fridas.jpg', 2000000.00, 'Surrealist self-portrait by Frida Kahlo.', 1939, 'Oil on canvas'),
+            (32, 'Mona Lisa', 1, 'https://upload.wikimedia.org/wikipedia/commons/6/6a/Mona_Lisa.jpg', 1000000.00, 'A portrait painting by Leonardo da Vinci.', 1503, 'Oil on canvas'),
+            (37, 'Under the stars', 8, 'uploaded_images/20231018_204900.jpg', 5000000.00, 'A child stands under palm trees, gazing at the star-filled night sky.', 2020, 'Oil on canvas'),
+            (39, 'Grant Wood', 10, 'uploaded_images/Grant_Wood_-_American_Gothic_-_Google_Art_Project.jpg', 3000000.00, 'The figures are seen as embodying positive aspects of rural American ideals, such as strength and stability', 1930, 'Oil of beaverboard')
+        ]
+        for aw_id, title, artist_id, img_url, price, desc, yr, med in artworks_data:
+            try:
+                db.execute(
+                    "INSERT INTO artworks (id, title, artist_id, image_url, price, description, year, medium) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                    (aw_id, title, artist_id, img_url, price, desc, yr, med)
+                )
+            except Exception:
+                pass
         db.commit()
 
-    # Default admin user if empty
-    users = db.fetchall("SELECT * FROM userss WHERE username=%s", ("admin",))
-    if not users:
-        hashed = bcrypt.hashpw("admin123".encode('utf-8'), bcrypt.gensalt())
-        db.execute("INSERT INTO userss (username, password, role) VALUES (%s, %s, %s)", ("admin", hashed, "admin"))
+    # Seed Users
+    existing_users = db.fetchall("SELECT username FROM userss")
+    if not existing_users:
+        users_data = [
+            ('Navneet Gupta', 'admin123', 'admin'),
+            ('Navneet', 'navneet123', 'user'),
+            ('admin', 'admin123', 'admin'),
+            ('Nonu', 'nonu123', 'user'),
+            ('Aditya', 'aditya123', 'user')
+        ]
+        for u, p, r in users_data:
+            try:
+                db.execute("INSERT INTO userss (username, password, role) VALUES (%s, %s, %s)", (u, hash_pw(p), r))
+            except Exception:
+                pass
+        db.commit()
+
+    # Seed Orders
+    existing_orders = db.fetchall("SELECT id FROM orders")
+    if not existing_orders:
+        orders_data = [
+            (1, 'Navneet', 19, 'The Persistence of Memory', 1300000.0, '2025-11-14 02:10:37'),
+            (2, 'Aditya', 28, 'Starry Night', 1500000.0, '2025-11-14 02:47:14'),
+            (3, 'Aditya', 37, 'Under the stars', 5000000.0, '2025-11-14 03:08:46'),
+            (4, 'Aditya', 21, 'Guernica', 1500000.0, '2025-11-14 03:12:47'),
+            (5, 'Navneet', 19, 'The Persistence of Memory', 1300000.0, '2025-11-14 10:50:18'),
+            (6, 'Navneet', 39, 'Grant Wood', 3000000.0, '2025-11-14 11:02:28')
+        ]
+        for o_id, usr, aw_id, title, price, o_date in orders_data:
+            try:
+                db.execute("INSERT INTO orders (id, user, artwork_id, title, price, order_date) VALUES (%s, %s, %s, %s, %s, %s)",
+                           (o_id, usr, aw_id, title, price, o_date))
+            except Exception:
+                pass
+        db.commit()
+
+    # Seed Reviews
+    existing_reviews = db.fetchall("SELECT id FROM reviews")
+    if not existing_reviews:
+        reviews_data = [
+            (1, 19, 'Navneet', 4, 'Stunning artwork!', '2025-11-14 02:17:42'),
+            (2, 20, 'Aditya', 3, 'Great colors.', '2025-11-14 03:14:03'),
+            (3, 21, 'Navneet', 5, 'Absolute masterpiece.', '2025-11-14 10:50:07'),
+            (4, 29, 'Navneet', 5, 'Beautiful impressionist art.', '2025-11-14 11:02:07')
+        ]
+        for r_id, aw_id, usr, rating, comment, r_date in reviews_data:
+            try:
+                db.execute("INSERT INTO reviews (id, artwork_id, user, rating, comment, review_date) VALUES (%s, %s, %s, %s, %s, %s)",
+                           (r_id, aw_id, usr, rating, comment, r_date))
+            except Exception:
+                pass
         db.commit()
 
 ensure_tables()
@@ -252,9 +314,8 @@ ensure_tables()
 # Helper Functions
 # -----------------------------
 def add_user(username, password, role):
-    hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
     db.execute("INSERT INTO userss (username, password, role) VALUES (%s, %s, %s)",
-               (username, hashed, role))
+               (username, hash_pw(password), role))
     db.commit()
 
 def login_user(username, password, role):
@@ -270,7 +331,6 @@ def login_user(username, password, role):
         return False
 
 def create_invoice_pdf_bytes(order_row):
-    """order_row: tuple (id, user, artwork_id, title, price, order_date)"""
     if not REPORTLAB_AVAILABLE:
         return None
     buffer = io.BytesIO()
@@ -325,12 +385,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Header & Subtitle
 st.title("🎨 Online Art Gallery")
-if db.db_type == 'sqlite':
-    st.caption("⚡ Database Mode: SQLite (Embedded Storage)")
-else:
-    st.caption("🌐 Database Mode: MySQL Server Connected")
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -363,7 +418,6 @@ def get_menu_options():
 menu = get_menu_options()
 choice = st.sidebar.selectbox("Navigation Menu", menu)
 
-# User status & logout in sidebar
 if st.session_state.logged_in:
     st.sidebar.markdown(f"**Logged in as:** `{st.session_state.username}` ({st.session_state.role.upper()})")
     if st.sidebar.button("Logout", key="sidebar_logout"):
@@ -404,7 +458,8 @@ def render_artworks_grid(search_query="", show_reviews=True, tab_id="main"):
             st.markdown(f"### {title}")
             if image_url:
                 try:
-                    st.image(image_url, use_container_width=True)
+                    # Clean aspect-ratio preserving display
+                    st.image(image_url)
                 except Exception:
                     st.text("🖼️ [Artwork Preview]")
             st.markdown(f"**Price:** ₹{price:,.2f}")
