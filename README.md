@@ -26,61 +26,6 @@ A full-featured **DBMS Art Gallery Management & E-Commerce Web Application** bui
 
 The application is powered by a relational database model supporting both **MySQL** (for production database servers) and **SQLite** (for embedded/cloud deployment).
 
-### 📊 Entity-Relationship (ER) Diagram
-
-```mermaid
-erdiagram
-    USERSS {
-        int id PK
-        string username UK
-        varbinary password
-        enum role "admin | user"
-    }
-
-    ARTISTS {
-        int id PK
-        string name
-        text bio
-    }
-
-    ARTWORKS {
-        int id PK
-        string title
-        int artist_id FK
-        string image_url
-        double price
-        text description
-        int year
-        string medium
-    }
-
-    ORDERS {
-        int id PK
-        string user
-        int artwork_id FK
-        string title
-        double price
-        timestamp order_date
-    }
-
-    REVIEWS {
-        int id PK
-        int artwork_id FK
-        string user
-        int rating
-        text comment
-        timestamp review_date
-    }
-
-    ARTISTS ||--o{ ARTWORKS : "creates"
-    ARTWORKS ||--o{ ORDERS : "purchased in"
-    ARTWORKS ||--o{ REVIEWS : "reviewed in"
-    USERSS ||--o{ ORDERS : "places"
-    USERSS ||--o{ REVIEWS : "writes"
-```
-
----
-
 ### 📋 Table DDL Schemas
 
 #### 1. `userss` Table
